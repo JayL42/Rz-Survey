@@ -1,6 +1,6 @@
-Test mode: https://yoursite.com/survey.html?mode=test
-Production mode: https://yoursite.com/survey.html?mode=production
-Default (test): https://yoursite.com/survey.html
+Test mode: https://jayl42.github.io/Rz-Survey/index.html?mode=test
+Production mode: https://jayl42.github.io/Rz-Survey/index.html?mode=production
+Default (test): https://jayl42.github.io/Rz-Survey/index.html
 
 Visual Indicator:
 The code already includes a visual indicator - when in test mode, 
