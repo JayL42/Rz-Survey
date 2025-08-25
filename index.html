@@ -43,6 +43,14 @@
             background: var(--primary);
             color: white;
             padding: 40px 40px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 24px;
+            filter: brightness(0) invert(1); /* Makes logo white */
         }
 
         .header h1 {
@@ -192,12 +200,20 @@
             .header {
                 padding: 30px 24px 24px;
             }
+
+            .logo {
+                max-width: 160px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <!-- Returnalyze Logo -->
+            <img src="https://www.returnalyze.com/wp-content/uploads/2023/06/returnalyze-logo.png" 
+                 alt="Returnalyze" 
+                 class="logo">
             <h1>Returns Action & Prevention Survey</h1>
             <p>Help us understand your challenges and improve our platform</p>
         </div>
@@ -215,7 +231,7 @@
                         What's your biggest challenge with returns data today?
                         <span class="required">*</span>
                     </label>
-                    <select name="What's your biggest challenge with returns data today?" id="q1" required>
+                    <select name="What's your biggest challenge with returns data today?" id="q1" required onchange="toggleOtherField()">
                         <option value="">Select an option</option>
                         <option value="Connecting data from multiple systems">Connecting data from multiple systems</option>
                         <option value="Real-time visibility">Real-time visibility</option>
@@ -223,6 +239,16 @@
                         <option value="Data accuracy/completeness">Data accuracy/completeness</option>
                         <option value="Other (Please Specify)">Other (Please Specify)</option>
                     </select>
+                </div>
+
+                <!-- Q1b: Other Specify for Challenge -->
+                <div class="field conditional-field" id="q1-other-conditional">
+                    <label for="q1-other">
+                        Please specify your challenge:
+                    </label>
+                    <textarea name="Other challenge details" 
+                              id="q1-other" 
+                              placeholder="Describe your specific challenge"></textarea>
                 </div>
 
                 <!-- Q2: Current Process -->
@@ -313,32 +339,56 @@
                               required></textarea>
                 </div>
 
-                <!-- Q9: Role -->
+                <!-- Q9: Department/Function -->
                 <div class="field">
                     <label for="q9">
-                        Your role
+                        Your department or function
                         <span class="required">*</span>
                     </label>
-                    <select name="Your role" id="q9" required>
-                        <option value="">Select your role</option>
-                        <option value="Operations/Fulfillment">Operations/Fulfillment</option>
-                        <option value="Customer Success/Support">Customer Success/Support</option>
-                        <option value="Finance">Finance</option>
-                        <option value="Merchandising/Product">Merchandising/Product</option>
-                        <option value="Analytics/Data">Analytics/Data</option>
-                        <option value="Executive">Executive</option>
+                    <select name="Your department or function" id="q9" required onchange="toggleDepartmentOther()">
+                        <option value="">Select your area</option>
+                        <option value="Merchandising">Merchandising</option>
+                        <option value="eCommerce">eCommerce</option>
+                        <option value="Product Development">Product Development</option>
+                        <option value="Site Merchants">Site Merchants</option>
+                        <option value="Operations">Operations</option>
+                        <option value="Executive Leadership">Executive Leadership</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
 
-                <!-- Q10: Company Name -->
+                <!-- Q9b: Other Department Specify -->
+                <div class="field conditional-field" id="q9-other-conditional">
+                    <label for="q9-other">
+                        Please specify your department:
+                    </label>
+                    <input type="text" 
+                           name="Other department" 
+                           id="q9-other" 
+                           placeholder="Your department or function">
+                </div>
+
+                <!-- Q10: Your Name -->
                 <div class="field">
                     <label for="q10">
+                        Your name
+                        <span class="required">*</span>
+                    </label>
+                    <input type="text" 
+                           name="Your name" 
+                           id="q10" 
+                           placeholder="First and last name"
+                           required>
+                </div>
+
+                <!-- Q11: Company Name -->
+                <div class="field">
+                    <label for="q11">
                         Company name (optional)
                     </label>
                     <input type="text" 
                            name="Company name" 
-                           id="q10" 
+                           id="q11" 
                            placeholder="Your company name">
                 </div>
 
@@ -363,7 +413,20 @@
             production: 'https://jayl42.app.n8n.cloud/webhook/bce6775a-1456-41a6-82c4-e70749270256'
         };
 
-        // Show/hide conditional field
+        // Show/hide Other field for Q1 (Challenge)
+        function toggleOtherField() {
+            const select = document.getElementById('q1');
+            const conditional = document.getElementById('q1-other-conditional');
+            
+            if (select.value === 'Other (Please Specify)') {
+                conditional.classList.add('show');
+            } else {
+                conditional.classList.remove('show');
+                document.getElementById('q1-other').value = '';
+            }
+        }
+
+        // Show/hide conditional field for Q4 (Rarely Implement)
         function toggleConditional() {
             const select = document.getElementById('q4');
             const conditional = document.getElementById('q5-conditional');
@@ -373,6 +436,19 @@
             } else {
                 conditional.classList.remove('show');
                 document.getElementById('q5').value = '';
+            }
+        }
+
+        // Show/hide Other field for Q9 (Department)
+        function toggleDepartmentOther() {
+            const select = document.getElementById('q9');
+            const conditional = document.getElementById('q9-other-conditional');
+            
+            if (select.value === 'Other') {
+                conditional.classList.add('show');
+            } else {
+                conditional.classList.remove('show');
+                document.getElementById('q9-other').value = '';
             }
         }
 
