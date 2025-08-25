@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Returnalyze - Returns Action & Prevention Survey</title>
+    <style>
+        :root {
+            /* Using Yanti's design system colors - update these to match exactly */
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 40px 40px 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .form-content {
+            padding: 40px;
+        }
+
+        .field {
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            letter-spacing: 0.025em;
+        }
+
+        label .required {
+            color: var(--error);
+            margin-left: 4px;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+
+        .placeholder-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .conditional-field {
+            display: none;
+            padding-left: 20px;
+            border-left: 3px solid var(--primary);
+            margin-top: -12px;
+        }
+
+        .conditional-field.show {
+            display: block;
+        }
+
+        .submit-section {
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+        }
+
+        button[type="submit"] {
+            background: var(--primary);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--secondary);
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 640px) {
+            .form-content {
+                padding: 24px;
+            }
+            
+            .header {
+                padding: 30px 24px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<script>
+    // CONFIGURATION - Toggle between test and production
+    const IS_PRODUCTION = false; // Set to true when ready for production
+    
+    const WEBHOOK_URLS = {
+        test: 'https://jayl42.app.n8n.cloud/webhook-test/bce6775a-1456-41a6-82c4-e70749270256',
+        production: 'https://jayl42.app.n8n.cloud/webhook/bce6775a-1456-41a6-82c4-e70749270256'
+    };
+    
+    // Set the form action based on mode
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('surveyForm');
+        form.action = IS_PRODUCTION ? WEBHOOK_URLS.production : WEBHOOK_URLS.test;
+        
+        // Optional: Show indicator for test mode
+        if (!IS_PRODUCTION) {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 9999;';
+            indicator.textContent = 'TEST MODE';
+            document.body.appendChild(indicator);
+        }
+        
+        // ... rest of your existing script
+    });
+</script>
+  
+  
+  <div class="container">
+        <div class="header">
+            <h1>Returns Action & Prevention Survey</h1>
+            <p>Help us understand your challenges and improve our platform</p>
+        </div>
+        
+        <div class="form-content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <form id="surveyForm" action="https://jayl42.app.n8n.cloud/form-test/9958c9c7-7da2-479a-814b-c6e0c339ee28" method="POST">
+                
+                <!-- Q1: Biggest Challenge -->
+                <div class="field">
+                    <label for="q1">
+                        What's your biggest challenge with returns data today?
+                        <span class="required">*</span>
+                    </label>
+                    <select name="What's your biggest challenge with returns data today?" id="q1" required>
+                        <option value="">Select an option</option>
+                        <option value="Connecting data from multiple systems">Connecting data from multiple systems</option>
+                        <option value="Real-time visibility">Real-time visibility</option>
+                        <option value="Affecting actions to be taken">Affecting actions to be taken</option>
+                        <option value="Data accuracy/completeness">Data accuracy/completeness</option>
+                        <option value="Other (Please Specify)">Other (Please Specify)</option>
+                    </select>
+                </div>
+
+                <!-- Q2: Current Process -->
+                <div class="field">
+                    <label for="q2">
+                        What is your typical process for taking action on returns insights?
+                        <span class="required">*</span>
+                    </label>
+                    <textarea name="What is your typical process for taking action on returns insights?" 
+                              id="q2" 
+                              placeholder="Walk us through your workflow - from identifying an issue to taking action"
+                              required></textarea>
+                </div>
+
+                <!-- Q3: Biggest Challenge Taking Action -->
+                <div class="field">
+                    <label for="q3">
+                        What's the biggest challenge you face when taking action on insights? (Be specific)
+                        <span class="required">*</span>
+                    </label>
+                    <textarea name="What's the biggest challenge you face when taking action on insights?" 
+                              id="q3" 
+                              placeholder="Example: Getting departments aligned to act on the same insight takes multiple meetings"
+                              required></textarea>
+                </div>
+
+                <!-- Q4: Implementation Speed -->
+                <div class="field">
+                    <label for="q4">
+                        Once you identify an actionable insight, how quickly can you typically implement changes?
+                        <span class="required">*</span>
+                    </label>
+                    <select name="Once you identify an actionable insight, how quickly can you typically implement changes?" 
+                            id="q4" 
+                            required 
+                            onchange="toggleConditional()">
+                        <option value="">Select an option</option>
+                        <option value="Within a day">Within a day</option>
+                        <option value="Within a week">Within a week</option>
+                        <option value="2-4 weeks">2-4 weeks</option>
+                        <option value="1-2 months">1-2 months</option>
+                        <option value="Longer than 2 months">Longer than 2 months</option>
+                        <option value="We rarely implement changes">We rarely implement changes</option>
+                    </select>
+                </div>
+
+                <!-- Q5: Conditional - Rarely Implement -->
+                <div class="field conditional-field" id="q5-conditional">
+                    <label for="q5">
+                        If you selected 'rarely implement changes', what prevents implementation?
+                    </label>
+                    <textarea name="If you selected 'rarely implement changes', what prevents implementation?" 
+                              id="q5" 
+                              placeholder="Help us understand the barriers - technical, organizational, resource-related, etc."></textarea>
+                </div>
+
+                <!-- Q6: 2x Proactive Actions -->
+                <div class="field">
+                    <label for="q6">
+                        What would need to change for your team to take 2x more proactive actions on returns?
+                    </label>
+                    <textarea name="What would need to change for your team to take 2x more proactive actions on returns?" 
+                              id="q6" 
+                              placeholder="People, process, technology, or data changes?"></textarea>
+                </div>
+
+                <!-- Q7: Returnalyze Impact -->
+                <div class="field">
+                    <label for="q7">
+                        Where has Returnalyze made the biggest impact in your ability to prevent returns?
+                        <span class="required">*</span>
+                    </label>
+                    <textarea name="Where has Returnalyze made the biggest impact in your ability to prevent returns?" 
+                              id="q7" 
+                              placeholder="Share a specific example or measurable improvement"
+                              required></textarea>
+                </div>
+
+                <!-- Q8: Magic Wand -->
+                <div class="field">
+                    <label for="q8">
+                        If you had a magic wand, what's your #1 wish for returns prevention?
+                        <span class="required">*</span>
+                    </label>
+                    <textarea name="If you had a magic wand, what's your #1 wish for returns prevention?" 
+                              id="q8" 
+                              placeholder="Dream big - what would transform your business?"
+                              required></textarea>
+                </div>
+
+                <!-- Q9: Role -->
+                <div class="field">
+                    <label for="q9">
+                        Your role
+                        <span class="required">*</span>
+                    </label>
+                    <select name="Your role" id="q9" required>
+                        <option value="">Select your role</option>
+                        <option value="Operations/Fulfillment">Operations/Fulfillment</option>
+                        <option value="Customer Success/Support">Customer Success/Support</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Merchandising/Product">Merchandising/Product</option>
+                        <option value="Analytics/Data">Analytics/Data</option>
+                        <option value="Executive">Executive</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Q10: Company Name -->
+                <div class="field">
+                    <label for="q10">
+                        Company name (optional)
+                    </label>
+                    <input type="text" 
+                           name="Company name" 
+                           id="q10" 
+                           placeholder="Your company name">
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" id="submitBtn">Submit Survey</button>
+                    <p class="footer-text">Your responses help us improve Returnalyze for everyone</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide conditional field
+        function toggleConditional() {
+            const select = document.getElementById('q4');
+            const conditional = document.getElementById('q5-conditional');
+            
+            if (select.value === 'We rarely implement changes') {
+                conditional.classList.add('show');
+            } else {
+                conditional.classList.remove('show');
+                document.getElementById('q5').value = '';
+            }
+        }
+
+        // Update progress bar as fields are filled
+        function updateProgress() {
+            const form = document.getElementById('surveyForm');
+            const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+            const filled = Array.from(inputs).filter(input => input.value.trim() !== '').length;
+            const percentage = (filled / inputs.length) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('surveyForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', updateProgress);
+                input.addEventListener('change', updateProgress);
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                // Convert form data to JSON
+                const formData = new FormData(form);
+                const data = {};
+                for (let [key, value] of formData.entries()) {
+                    if (value) data[key] = value;
+                }
+                
+                // Send to n8n webhook
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Success - show thank you
+                        document.querySelector('.form-content').innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px;">
+                                <svg style="width: 80px; height: 80px; color: var(--success); margin-bottom: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h2 style="font-size: 24px; margin-bottom: 12px;">Thank You!</h2>
+                                <p style="color: var(--text-secondary);">Your survey response has been received.</p>
+                                <p style="color: var(--text-secondary); margin-top: 8px;">We appreciate your feedback!</p>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error('Submission failed');
+                    }
+                })
+                .catch(error => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Survey';
+                    alert('There was an error submitting your response. Please try again.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
