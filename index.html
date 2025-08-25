@@ -197,26 +197,19 @@
 </head>
 <body>
 <script>
+    <script>
     // CONFIGURATION - Toggle between test and production
-    const IS_PRODUCTION = false; // Set to true when ready for production
+    // Check URL parameter first, then fall back to hardcoded setting
+    const urlParams = new URLSearchParams(window.location.search);
+    const IS_PRODUCTION = urlParams.get('mode') === 'production' ? true : 
+                          urlParams.get('mode') === 'test' ? false : 
+                          false; // Default to test mode
     
     const WEBHOOK_URLS = {
         test: 'https://jayl42.app.n8n.cloud/webhook-test/bce6775a-1456-41a6-82c4-e70749270256',
         production: 'https://jayl42.app.n8n.cloud/webhook/bce6775a-1456-41a6-82c4-e70749270256'
     };
-    
-    // Set the form action based on mode
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('surveyForm');
-        form.action = IS_PRODUCTION ? WEBHOOK_URLS.production : WEBHOOK_URLS.test;
-        
-        // Optional: Show indicator for test mode
-        if (!IS_PRODUCTION) {
-            const indicator = document.createElement('div');
-            indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 9999;';
-            indicator.textContent = 'TEST MODE';
-            document.body.appendChild(indicator);
-        }
+
         
   
   
