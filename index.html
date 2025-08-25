@@ -196,24 +196,7 @@
     </style>
 </head>
 <body>
-<script>
-    <script>
-    // CONFIGURATION - Toggle between test and production
-    // Check URL parameter first, then fall back to hardcoded setting
-    const urlParams = new URLSearchParams(window.location.search);
-    const IS_PRODUCTION = urlParams.get('mode') === 'production' ? true : 
-                          urlParams.get('mode') === 'test' ? false : 
-                          false; // Default to test mode
-    
-    const WEBHOOK_URLS = {
-        test: 'https://jayl42.app.n8n.cloud/webhook-test/bce6775a-1456-41a6-82c4-e70749270256',
-        production: 'https://jayl42.app.n8n.cloud/webhook/bce6775a-1456-41a6-82c4-e70749270256'
-    };
-
-        
-  
-  
-  <div class="container">
+    <div class="container">
         <div class="header">
             <h1>Returns Action & Prevention Survey</h1>
             <p>Help us understand your challenges and improve our platform</p>
@@ -224,7 +207,7 @@
                 <div class="progress-fill" id="progressBar"></div>
             </div>
 
-            <form id="surveyForm" action="https://jayl42.app.n8n.cloud/form-test/9958c9c7-7da2-479a-814b-c6e0c339ee28" method="POST">
+            <form id="surveyForm" method="POST">
                 
                 <!-- Q1: Biggest Challenge -->
                 <div class="field">
@@ -368,6 +351,18 @@
     </div>
 
     <script>
+        // CONFIGURATION - Toggle between test and production
+        // Check URL parameter first, then fall back to hardcoded setting
+        const urlParams = new URLSearchParams(window.location.search);
+        const IS_PRODUCTION = urlParams.get('mode') === 'production' ? true : 
+                              urlParams.get('mode') === 'test' ? false : 
+                              false; // Default to test mode
+        
+        const WEBHOOK_URLS = {
+            test: 'https://jayl42.app.n8n.cloud/webhook-test/bce6775a-1456-41a6-82c4-e70749270256',
+            production: 'https://jayl42.app.n8n.cloud/webhook/bce6775a-1456-41a6-82c4-e70749270256'
+        };
+
         // Show/hide conditional field
         function toggleConditional() {
             const select = document.getElementById('q4');
@@ -393,6 +388,18 @@
         // Add event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('surveyForm');
+            
+            // Set form action based on mode
+            form.action = IS_PRODUCTION ? WEBHOOK_URLS.production : WEBHOOK_URLS.test;
+            
+            // Show test mode indicator if in test mode
+            if (!IS_PRODUCTION) {
+                const indicator = document.createElement('div');
+                indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 9999;';
+                indicator.textContent = 'TEST MODE';
+                document.body.appendChild(indicator);
+            }
+            
             const inputs = form.querySelectorAll('input, select, textarea');
             
             inputs.forEach(input => {
