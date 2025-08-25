@@ -405,7 +405,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const IS_PRODUCTION = urlParams.get('mode') === 'production' ? true : 
                               urlParams.get('mode') === 'test' ? false : 
-                              true; // Default to test mode
+                              true; // Default to production mode
         
         const WEBHOOK_URLS = {
             test: 'https://jayl42.app.n8n.cloud/webhook-test/bce6775a-1456-41a6-82c4-e70749270256',
